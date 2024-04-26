@@ -416,7 +416,7 @@ int main()
 
 	vector<int> selectedVacancies(matrix.size(), -1);
 
-	cout << "Columns: vacancies\nRows:\t candidates\n\n";
+	cout << "Columns: candidates\nRows:\t vacancies\n\n";
 
 	cout << "Matrix A:\n";
 	matrixPrint(matrix, 0);
