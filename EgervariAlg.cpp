@@ -214,7 +214,7 @@ vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex
 				if (chainMatrix[chain[0].i][chain[0].j] > 0)
 					if (i + chainMatrix[chain[0].i][chain[0].j] - 1 >= chainMatrix.size())
 					{
-						if (chain.size() % 2 == 1)
+						if (chain.size() % 2 != 1)
 							return chain;
 						else
 						{
@@ -267,7 +267,7 @@ vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex
 				if (chainMatrix[chain[0].i][chain[0].j] > 0)
 					if (j + chainMatrix[chain[0].i][chain[0].j] - 1 >= chainMatrix[0].size())
 					{
-						if (chain.size() % 2 == 1)
+						if (chain.size() % 2 != 1)
 							return chain;
 						else
 						{
