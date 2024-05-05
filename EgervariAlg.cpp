@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <vector>
 #include <iomanip>
 
@@ -45,7 +45,7 @@ vector<vector<int>> matrixRead()
 
 void matrixPrint(vector<vector<int>>& matrix, int n)
 {
-	for (int i = 0; i < matrix.size(); i++) 
+	for (int i = 0; i < matrix.size(); i++)
 	{
 		cout << setw(n + 1);
 		for (int j = 0; j < matrix[0].size(); j++)
@@ -132,7 +132,7 @@ vector<vector<int>> selectedCondidatesMatrixFind(vector<vector<int>>& condMatrix
 	vector<vector<int>> sCondMatrix = condMatrix;
 	bool flagCol, flagRow;
 
-	for (int i = 0; i < condMatrix.size(); i++) 
+	for (int i = 0; i < condMatrix.size(); i++)
 	{
 		flagRow = false;
 
@@ -177,7 +177,7 @@ void egervariReduction(vector<vector<int>>& matrix, vector<int>& notSelected_i, 
 		{
 			int num = matrix[notSelected_i[i]][j];
 
-			if (num < minAlpha && num != 0) 
+			if (num < minAlpha && num != 0)
 				minAlpha = num;
 		}
 
@@ -202,7 +202,7 @@ void egervariReduction(vector<vector<int>>& matrix, vector<int>& notSelected_i, 
 			matrix[i][notSelected_j[j]] += minAlpha;
 }
 
-vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex>& chain, vector<vector<int>>& chainMatrix)
+vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex>& chain, vector<vector<int>>& chainMatrix, int& chainSize, int& numOfActions)
 {
 	ChainVertex nextVertex;
 
@@ -214,15 +214,19 @@ vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex
 				if (chainMatrix[chain[0].i][chain[0].j] > 0)
 					i += (chainMatrix[chain[0].i][chain[0].j] - 1);
 
-				if (chainMatrix[i][chain[0].j] == 1) 
+				if (chainMatrix[i][chain[0].j] == 1)
 				{
 					ChainVertex cycleVertex;
 					cycleVertex.i = i;
 					cycleVertex.j = chain[0].j;
 
 					for (int k = 0; k < chain.size(); k++)
-						if (chain[0].i != cycleVertex.i || chain[0].j != cycleVertex.j)
+						if (chain[0].i != cycleVertex.i || chain[0].j != cycleVertex.j) 
+						{
 							chain.erase(chain.begin());
+							chainSize--;
+							numOfActions++;
+						}
 						else
 							break;
 				}
@@ -233,16 +237,18 @@ vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex
 					nextVertex.value = 1;
 
 					chain.insert(chain.begin(), nextVertex);
+					chainSize++;
+					numOfActions++;
 				}
 
 				chainMatrix[i][chain[0].j]++;
 
-				chainCreate(matrixB, chain, chainMatrix);
+				chainCreate(matrixB, chain, chainMatrix, chainSize, numOfActions);
 
 				break;
 			}
 	}
-	else 
+	else
 	{
 		for (int j = 0; j < matrixB[0].size(); j++)
 			if (matrixB[chain[0].i][j] == -1)
@@ -258,7 +264,11 @@ vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex
 
 					for (int k = 0; k < chain.size(); k++)
 						if (chain[0].i != cycleVertex.i || chain[0].j != cycleVertex.j)
+						{
 							chain.erase(chain.begin());
+							chainSize--;
+							numOfActions++;
+						}
 						else
 							break;
 				}
@@ -269,11 +279,13 @@ vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex
 					nextVertex.value = -1;
 
 					chain.insert(chain.begin(), nextVertex);
+					chainSize++;
+					numOfActions++;
 				}
 
 				chainMatrix[chain[0].i][j]++;
 
-				chainCreate(matrixB, chain, chainMatrix);
+				chainCreate(matrixB, chain, chainMatrix, chainSize, numOfActions);
 
 				break;
 			}
@@ -284,12 +296,13 @@ vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex
 
 bool chainCheck(vector<vector<int>>& matrixB, ChainVertex& startVertex, int num)
 {
-	vector<vector<int>> chainMatrix (matrixB.size(), vector<int>(matrixB[0].size(), 0));
+	vector<vector<int>> chainMatrix(matrixB.size(), vector<int>(matrixB[0].size(), 0));
 
+	int chainSize = 1, numOfActions = 0;
 	vector<ChainVertex> chain;
 	chain.push_back(startVertex);
 
-	chainCreate(matrixB, chain, chainMatrix);
+	chainCreate(matrixB, chain, chainMatrix, chainSize, numOfActions);
 
 	if (chain.size() % 2 == 1)
 	{
@@ -306,13 +319,21 @@ bool chainCheck(vector<vector<int>>& matrixB, ChainVertex& startVertex, int num)
 		cout << "   Matrix B`" << num + 1 << ":\n";
 		matrixPrint(matrixB, 3);
 
+		cout << "   Chain inverted.\n";
+		cout << "   Size of chain: " << chainSize << "\n";
+		cout << "   Number of actions: " << numOfActions << "\n";
+
 		return true;
 	}
+
+	cout << "   Chain not inverted.\n";
+	cout << "   Size of chain: " << chainSize << "\n";
+	cout << "   Number of actions: " << numOfActions << "\n\n";
 
 	return false;
 }
 
-void egervariAlg(vector<vector<int>>& matrix, vector<vector<int>>& matrixB, vector<int>& selected, int num)
+void egervariAlg(vector<vector<int>>& matrix, vector<vector<int>>& matrixB, vector<int>& selected, int num, int& retryNum)
 {
 	vector<int> notSelected_i, notSelected_j;
 	bool flag;
@@ -376,11 +397,14 @@ void egervariAlg(vector<vector<int>>& matrix, vector<vector<int>>& matrixB, vect
 
 	//--------------
 
+	bool resultFlag = true, stopFlag;
 	ChainVertex startVertex;
 
 	for (int i = 0; i < matrix.size(); i++)
 		if (selectedCopy[i] == -1)
 		{
+			resultFlag = false;
+
 			startVertex.value = -1;
 			startVertex.i = i;
 
@@ -391,24 +415,39 @@ void egervariAlg(vector<vector<int>>& matrix, vector<vector<int>>& matrixB, vect
 					break;
 				}
 		}
+	
+	if (resultFlag)
+	{
+		cout << "== Result ========================\n";
+		cout << "   Matrix B:\n";
+		matrixPrint(matrixB, 3);
+	}
+	else 
+	{
+		stopFlag = chainCheck(B, startVertex, num);
 
-	bool stopFlag;
-	stopFlag = chainCheck(B, startVertex, num);
+		if (stopFlag)
+			return;
+	}
 
-	if (stopFlag)
-		return;
 
 	//--------------
 
 
-
-	num++;
-	egervariAlg(matrixCopy, B, selected, num);
+	if (num < retryNum) 
+	{
+		num++;
+		egervariAlg(matrixCopy, B, selected, num, retryNum);
+	}
+	else
+	{
+		cout << "== All vacancies alredy filled as much as they can.\n";
+	}
 }
 
 //---------------------------------------------------------------
 
-int main() 
+int main()
 {
 	vector<vector<int>> matrix, matrixCopy, M, B;
 	matrix = matrixRead();
@@ -441,7 +480,13 @@ int main()
 
 	//--------------
 
-	egervariAlg(matrixCopy, B, selectedVacancies, 0);
+	int retryNum = 0;
+
+	for (int i = 0; i < selectedVacancies.size(); i++)
+		if (selectedVacancies[i] == -1)
+			retryNum++;
+
+	egervariAlg(matrixCopy, B, selectedVacancies, 0, retryNum);
 
 	char ch;
 	cin >> ch;
