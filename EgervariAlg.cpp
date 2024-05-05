@@ -212,9 +212,20 @@ vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex
 			if (matrixB[i][chain[0].j] == 1)
 			{
 				if (chainMatrix[chain[0].i][chain[0].j] > 0)
-					i += (chainMatrix[chain[0].i][chain[0].j] - 1);
+					if (i + chainMatrix[chain[0].i][chain[0].j] - 1 >= chainMatrix.size())
+					{
+						if (chain.size() % 2 == 1)
+							return chain;
+						else
+						{
+							chain.erase(chain.begin());
+							return chain;
+						}
+					}
+					else
+						i += (chainMatrix[chain[0].i][chain[0].j] - 1);
 
-				if (chainMatrix[i][chain[0].j] == 1)
+				if (chainMatrix[i][chain[0].j] > 0)
 				{
 					ChainVertex cycleVertex;
 					cycleVertex.i = i;
@@ -254,9 +265,20 @@ vector<ChainVertex> chainCreate(vector<vector<int>>& matrixB, vector<ChainVertex
 			if (matrixB[chain[0].i][j] == -1)
 			{
 				if (chainMatrix[chain[0].i][chain[0].j] > 0)
-					j += (chainMatrix[chain[0].i][chain[0].j] - 1);
+					if (j + chainMatrix[chain[0].i][chain[0].j] - 1 >= chainMatrix[0].size())
+					{
+						if (chain.size() % 2 == 1)
+							return chain;
+						else
+						{
+							chain.erase(chain.begin());
+							return chain;
+						}
+					}
+					else
+						j += (chainMatrix[chain[0].i][chain[0].j] - 1);
 
-				if (chainMatrix[chain[0].i][j] == 1)
+				if (chainMatrix[chain[0].i][j] > 0)
 				{
 					ChainVertex cycleVertex;
 					cycleVertex.i = chain[0].i;
@@ -420,28 +442,23 @@ void egervariAlg(vector<vector<int>>& matrix, vector<vector<int>>& matrixB, vect
 	{
 		cout << "== Result ========================\n";
 		cout << "   Matrix B:\n";
-		matrixPrint(matrixB, 3);
+		matrixPrint(B, 3);
+
 	}
-	else 
+	else
 	{
 		stopFlag = chainCheck(B, startVertex, num);
 
 		if (stopFlag)
 			return;
-	}
 
-
-	//--------------
-
-
-	if (num < retryNum) 
-	{
-		num++;
-		egervariAlg(matrixCopy, B, selected, num, retryNum);
-	}
-	else
-	{
-		cout << "== All vacancies alredy filled as much as they can.\n";
+		if (num < retryNum)
+		{
+			num++;
+			egervariAlg(matrixCopy, B, selected, num, retryNum);
+		}
+		else
+			cout << "== All vacancies alredy filled as much as they can.\n";
 	}
 }
 
